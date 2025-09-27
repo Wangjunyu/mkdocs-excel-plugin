@@ -4,7 +4,6 @@
 [![PyPI version](https://img.shields.io/pypi/v/mkdocs-excel-plugin)](https://pypi.org/project/mkdocs-excel-plugin/)
 [![Python versions](https://img.shields.io/pypi/pyversions/mkdocs-excel-plugin)](https://pypi.org/project/mkdocs-excel-plugin/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Downloads](https://img.shields.io/pypi/dm/mkdocs-excel-plugin)](https://pypi.org/project/mkdocs-excel-plugin/)
 
 A MkDocs plugin that renders Excel files as beautiful HTML tables with complete style preservation.
 
