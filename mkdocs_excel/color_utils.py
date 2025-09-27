@@ -22,21 +22,21 @@ def get_rgb_from_color(color_obj, workbook=None) -> Optional[str]:
 
     try:
         # Pre-check: If RGB is all zeros, no color is set
-        if hasattr(color_obj, 'rgb') and color_obj.rgb:
+        if hasattr(color_obj, "rgb") and color_obj.rgb:
             rgb = color_obj.rgb
-            if isinstance(rgb, str) and rgb == '00000000':
+            if isinstance(rgb, str) and rgb == "00000000":
                 return None  # Explicitly no color, don't use default
 
         # Method 1: Direct RGB string processing
-        if hasattr(color_obj, 'rgb') and color_obj.rgb:
+        if hasattr(color_obj, "rgb") and color_obj.rgb:
             rgb = color_obj.rgb
             if isinstance(rgb, str) and len(rgb) == 8:
                 # AARRGGBB format, remove alpha channel
-                if rgb != '00000000' and rgb[2:] != '000000':
+                if rgb != "00000000" and rgb[2:] != "000000":
                     return rgb[2:]  # Return RRGGBB
 
         # Method 2: Theme color processing (only process valid themes)
-        if hasattr(color_obj, 'theme') and color_obj.theme is not None:
+        if hasattr(color_obj, "theme") and color_obj.theme is not None:
             # Strict check: ensure theme is a valid integer value
             try:
                 theme_value = int(color_obj.theme)
@@ -63,18 +63,31 @@ def get_rgb_from_color(color_obj, workbook=None) -> Optional[str]:
             base_color = theme_colors[theme_value]
 
             # Apply tint adjustment
-            if hasattr(color_obj, 'tint') and color_obj.tint != 0:
+            if hasattr(color_obj, "tint") and color_obj.tint != 0:
                 base_color = apply_tint(base_color, color_obj.tint)
 
             return base_color
 
         # Method 3: Indexed color processing
-        if hasattr(color_obj, 'indexed') and color_obj.indexed is not None:
+        if hasattr(color_obj, "indexed") and color_obj.indexed is not None:
             # Excel standard color palette (simplified)
             indexed_colors = {
-                0: "000000", 1: "FFFFFF", 2: "FF0000", 3: "00FF00", 4: "0000FF",
-                5: "FFFF00", 6: "FF00FF", 7: "00FFFF", 8: "000000", 9: "FFFFFF",
-                10: "FF0000", 11: "00FF00", 12: "0000FF", 13: "FFFF00", 14: "FF00FF", 15: "00FFFF"
+                0: "000000",
+                1: "FFFFFF",
+                2: "FF0000",
+                3: "00FF00",
+                4: "0000FF",
+                5: "FFFF00",
+                6: "FF00FF",
+                7: "00FFFF",
+                8: "000000",
+                9: "FFFFFF",
+                10: "FF0000",
+                11: "00FF00",
+                12: "0000FF",
+                13: "FFFF00",
+                14: "FF00FF",
+                15: "00FFFF",
             }
             return indexed_colors.get(color_obj.indexed, None)
 

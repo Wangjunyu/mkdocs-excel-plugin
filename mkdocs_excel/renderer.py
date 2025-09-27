@@ -2,14 +2,14 @@
 
 import os
 from datetime import datetime
-from typing import Dict, List, Optional, Any
-from markupsafe import Markup
+from typing import Any, Dict, List, Optional
 
 import openpyxl
+from markupsafe import Markup
 from openpyxl.utils import get_column_letter
 
-from .color_utils import get_rgb_from_color
 from .cache import ExcelCache
+from .color_utils import get_rgb_from_color
 
 
 class ExcelRenderer:
@@ -38,9 +38,9 @@ class ExcelRenderer:
         if os.path.isabs(file_path):
             return file_path
 
-        if self.current_page and hasattr(self.current_page, 'file'):
+        if self.current_page and hasattr(self.current_page, "file"):
             page_dir = os.path.dirname(self.current_page.file.src_path)
-            return os.path.join('docs', page_dir, file_path)
+            return os.path.join("docs", page_dir, file_path)
 
         return file_path
 
@@ -69,7 +69,7 @@ class ExcelRenderer:
         file_path: str,
         sheet_name: str,
         max_rows: int = None,
-        max_cols: int = None
+        max_cols: int = None,
     ) -> str:
         """Render a single Excel sheet as HTML table."""
         max_rows = max_rows or self.default_max_rows
@@ -78,7 +78,9 @@ class ExcelRenderer:
         # Check file existence
         exists, resolved_path = self._check_file_exists(file_path)
         if not exists:
-            return Markup(f"<div class='excel-error'><p>❌ <strong>Excel File Not Found</strong></p><p>File path: <code>{resolved_path}</code></p><p>Please check the file path and ensure the file exists.</p></div>")
+            return Markup(
+                f"<div class='excel-error'><p>❌ <strong>Excel File Not Found</strong></p><p>File path: <code>{resolved_path}</code></p><p>Please check the file path and ensure the file exists.</p></div>"
+            )
 
         # Performance warnings
         size_warning = self._get_file_size_warning(resolved_path)
@@ -93,12 +95,16 @@ class ExcelRenderer:
 
             if sheet_name not in workbook.sheetnames:
                 available = "、".join(workbook.sheetnames)
-                return Markup(f"<div class='excel-error'><p>❌ <strong>Worksheet Not Found</strong></p><p>Requested sheet: <code>{sheet_name}</code></p><p>Available sheets: <code>{available}</code></p></div>")
+                return Markup(
+                    f"<div class='excel-error'><p>❌ <strong>Worksheet Not Found</strong></p><p>Requested sheet: <code>{sheet_name}</code></p><p>Available sheets: <code>{available}</code></p></div>"
+                )
 
             sheet = workbook[sheet_name]
 
         except Exception as e:
-            return Markup(f"<div class='excel-error'><p>❌ <strong>Excel File Read Error</strong></p><p>Error: <code>{str(e)}</code></p><p>Please check if the file is corrupted or in the correct format.</p></div>")
+            return Markup(
+                f"<div class='excel-error'><p>❌ <strong>Excel File Read Error</strong></p><p>Error: <code>{str(e)}</code></p><p>Please check if the file is corrupted or in the correct format.</p></div>"
+            )
 
         # Generate table HTML
         html = self._render_sheet_to_html(sheet, max_rows, max_cols)
@@ -115,7 +121,7 @@ class ExcelRenderer:
         max_rows: int = None,
         max_cols: int = None,
         include_sheets: List[str] = None,
-        exclude_sheets: List[str] = None
+        exclude_sheets: List[str] = None,
     ) -> str:
         """Render all sheets in an Excel file."""
         max_rows = max_rows or self.default_max_rows
@@ -124,26 +130,34 @@ class ExcelRenderer:
         # Check file existence
         exists, resolved_path = self._check_file_exists(file_path)
         if not exists:
-            return Markup(f"<div class='excel-error'><p>❌ <strong>Excel File Not Found</strong></p><p>File path: <code>{resolved_path}</code></p></div>")
+            return Markup(
+                f"<div class='excel-error'><p>❌ <strong>Excel File Not Found</strong></p><p>File path: <code>{resolved_path}</code></p></div>"
+            )
 
         try:
             workbook = openpyxl.load_workbook(resolved_path, data_only=True)
             all_sheets = workbook.sheetnames
         except Exception as e:
-            return Markup(f"<div class='excel-error'><p>❌ <strong>Excel File Read Error</strong></p><p>Error: <code>{str(e)}</code></p></div>")
+            return Markup(
+                f"<div class='excel-error'><p>❌ <strong>Excel File Read Error</strong></p><p>Error: <code>{str(e)}</code></p></div>"
+            )
 
         # Determine target sheets
         if include_sheets:
             target_sheets = [s for s in include_sheets if s in all_sheets]
             missing_sheets = [s for s in include_sheets if s not in all_sheets]
             if missing_sheets:
-                return Markup(f"<div class='excel-error'><p>❌ <strong>Specified Sheets Not Found</strong></p><p>Missing sheets: <code>{', '.join(missing_sheets)}</code></p><p>Available sheets: <code>{', '.join(all_sheets)}</code></p></div>")
+                return Markup(
+                    f"<div class='excel-error'><p>❌ <strong>Specified Sheets Not Found</strong></p><p>Missing sheets: <code>{', '.join(missing_sheets)}</code></p><p>Available sheets: <code>{', '.join(all_sheets)}</code></p></div>"
+                )
         else:
             exclude_sheets = exclude_sheets or []
             target_sheets = [s for s in all_sheets if s not in exclude_sheets]
 
         if not target_sheets:
-            return Markup("<div class='excel-warning'><p>⚠️ <strong>No Sheets to Display</strong></p><p>Please check include/exclude settings.</p></div>")
+            return Markup(
+                "<div class='excel-warning'><p>⚠️ <strong>No Sheets to Display</strong></p><p>Please check include/exclude settings.</p></div>"
+            )
 
         # Generate overview
         overview_html = f"<div class='excel-info'><p>📚 <strong>Excel File Overview</strong></p><p>File: <code>{os.path.basename(resolved_path)}</code></p><p>Displaying {len(target_sheets)} sheets: {', '.join(target_sheets)}</p></div>"
@@ -151,7 +165,9 @@ class ExcelRenderer:
         # Render each sheet
         sheets_html = ""
         for i, sheet_name in enumerate(target_sheets):
-            sheet_html = self.render_excel_sheet(file_path, sheet_name, max_rows, max_cols)
+            sheet_html = self.render_excel_sheet(
+                file_path, sheet_name, max_rows, max_cols
+            )
             sheets_html += f"<div class='excel-sheet-section'><h3 class='excel-sheet-title'>📊 Sheet: {sheet_name}</h3>{sheet_html}</div>"
 
             if i < len(target_sheets) - 1:
@@ -163,7 +179,9 @@ class ExcelRenderer:
         """List all sheets in an Excel file."""
         exists, resolved_path = self._check_file_exists(file_path)
         if not exists:
-            return Markup(f"<div class='excel-error'><p>❌ <strong>Excel File Not Found</strong></p><p>File path: <code>{resolved_path}</code></p></div>")
+            return Markup(
+                f"<div class='excel-error'><p>❌ <strong>Excel File Not Found</strong></p><p>File path: <code>{resolved_path}</code></p></div>"
+            )
 
         try:
             workbook = openpyxl.load_workbook(resolved_path, data_only=True)
@@ -173,10 +191,14 @@ class ExcelRenderer:
             for sheet in sheets:
                 sheet_list += f"<li><code>{sheet}</code></li>"
 
-            return Markup(f"<div class='excel-info'><p>📋 <strong>Sheet List</strong></p><p>File: <code>{os.path.basename(resolved_path)}</code></p><ol>{sheet_list}</ol></div>")
+            return Markup(
+                f"<div class='excel-info'><p>📋 <strong>Sheet List</strong></p><p>File: <code>{os.path.basename(resolved_path)}</code></p><ol>{sheet_list}</ol></div>"
+            )
 
         except Exception as e:
-            return Markup(f"<div class='excel-error'><p>❌ Unable to read file: <code>{str(e)}</code></p></div>")
+            return Markup(
+                f"<div class='excel-error'><p>❌ Unable to read file: <code>{str(e)}</code></p></div>"
+            )
 
     def _render_sheet_to_html(self, sheet, max_rows: int, max_cols: int) -> str:
         """Convert Excel sheet to HTML table."""
@@ -193,14 +215,20 @@ class ExcelRenderer:
         cols_truncated = actual_cols > max_cols
 
         if rows_truncated:
-            warning_parts.append(f"Row limit exceeded: showing first {max_rows} rows (total {actual_rows} rows)")
+            warning_parts.append(
+                f"Row limit exceeded: showing first {max_rows} rows (total {actual_rows} rows)"
+            )
         if cols_truncated:
-            warning_parts.append(f"Column limit exceeded: showing first {max_cols} columns (total {actual_cols} columns)")
+            warning_parts.append(
+                f"Column limit exceeded: showing first {max_cols} columns (total {actual_cols} columns)"
+            )
 
         # Performance warning
         total_cells = min(actual_rows, max_rows) * min(actual_cols, max_cols)
         if total_cells > 10000:
-            warning_parts.append(f"Large cell count ({total_cells:,} cells) may affect page performance")
+            warning_parts.append(
+                f"Large cell count ({total_cells:,} cells) may affect page performance"
+            )
 
         # Build info HTML
         info_html = f"<div class='excel-info'><p>{' | '.join(info_parts)}</p></div>"
@@ -216,10 +244,13 @@ class ExcelRenderer:
             for row in range(merged_range.min_row, merged_range.max_row + 1):
                 for col in range(merged_range.min_col, merged_range.max_col + 1):
                     if (row, col) != (merged_range.min_row, merged_range.min_col):
-                        merged_cells_map[(row, col)] = (merged_range.min_row, merged_range.min_col)
+                        merged_cells_map[(row, col)] = (
+                            merged_range.min_row,
+                            merged_range.min_col,
+                        )
 
-        # Generate table
-        html = "<table class='excel-table'>"
+        # Generate table with wrapper
+        html = "<div class='excel-table-wrapper'><table class='excel-table'>"
         process_rows = min(actual_rows, max_rows) if actual_rows else max_rows
         process_cols = min(actual_cols, max_cols) if actual_cols else max_cols
 
@@ -230,14 +261,18 @@ class ExcelRenderer:
                     continue
 
                 cell = sheet.cell(row_idx, col_idx)
-                html += self._render_cell_to_html(cell, sheet, merged_cells_map, process_rows, process_cols)
+                html += self._render_cell_to_html(
+                    cell, sheet, merged_cells_map, process_rows, process_cols
+                )
             html += "</tr>"
 
-        html += "</table>"
+        html += "</table></div>"
 
         return info_html + warning_html + html
 
-    def _render_cell_to_html(self, cell, sheet, merged_cells_map, max_rows, max_cols) -> str:
+    def _render_cell_to_html(
+        self, cell, sheet, merged_cells_map, max_rows, max_cols
+    ) -> str:
         """Render a single cell to HTML."""
         style_parts = []
 
@@ -273,17 +308,27 @@ class ExcelRenderer:
             if cell.alignment.horizontal:
                 style_parts.append(f"text-align: {cell.alignment.horizontal}")
             if cell.alignment.vertical:
-                valign_map = {'center': 'middle', 'top': 'top', 'bottom': 'bottom'}
+                valign_map = {"center": "middle", "top": "top", "bottom": "bottom"}
                 if cell.alignment.vertical in valign_map:
-                    style_parts.append(f"vertical-align: {valign_map[cell.alignment.vertical]}")
+                    style_parts.append(
+                        f"vertical-align: {valign_map[cell.alignment.vertical]}"
+                    )
 
         # Borders
         if cell.border:
             border_styles = []
-            for side_name, side in [('top', cell.border.top), ('right', cell.border.right),
-                                  ('bottom', cell.border.bottom), ('left', cell.border.left)]:
+            for side_name, side in [
+                ("top", cell.border.top),
+                ("right", cell.border.right),
+                ("bottom", cell.border.bottom),
+                ("left", cell.border.left),
+            ]:
                 if side.style:
-                    width = '1px' if side.style == 'thin' else '2px' if side.style == 'thick' else '1px'
+                    width = (
+                        "1px"
+                        if side.style == "thin"
+                        else "2px" if side.style == "thick" else "1px"
+                    )
                     color = "#000000"
                     if side.color and side.color.rgb:
                         side_color = side.color.rgb
@@ -295,8 +340,12 @@ class ExcelRenderer:
         # Handle merged cells
         colspan = rowspan = 1
         for merged_range in sheet.merged_cells.ranges:
-            if (cell.row == merged_range.min_row and cell.column == merged_range.min_col
-                and cell.row <= max_rows and cell.column <= max_cols):
+            if (
+                cell.row == merged_range.min_row
+                and cell.column == merged_range.min_col
+                and cell.row <= max_rows
+                and cell.column <= max_cols
+            ):
                 colspan = min(merged_range.max_col, max_cols) - merged_range.min_col + 1
                 rowspan = min(merged_range.max_row, max_rows) - merged_range.min_row + 1
                 break
@@ -304,4 +353,6 @@ class ExcelRenderer:
         style = "; ".join(style_parts)
         value = str(cell.value) if cell.value is not None else ""
 
-        return f"<td colspan='{colspan}' rowspan='{rowspan}' style='{style}'>{value}</td>"
+        return (
+            f"<td colspan='{colspan}' rowspan='{rowspan}' style='{style}'>{value}</td>"
+        )

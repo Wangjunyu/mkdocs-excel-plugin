@@ -2,13 +2,13 @@
 
 import os
 import re
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
-from mkdocs.plugins import BasePlugin
 from mkdocs.config import config_options
+from mkdocs.config.defaults import MkDocsConfig
+from mkdocs.plugins import BasePlugin
 from mkdocs.structure.files import File
 from mkdocs.structure.pages import Page
-from mkdocs.config.defaults import MkDocsConfig
 
 from .renderer import ExcelRenderer
 
@@ -47,11 +47,7 @@ class ExcelPlugin(BasePlugin):
         return config
 
     def on_page_markdown(
-        self,
-        markdown: str,
-        page: Page,
-        config: MkDocsConfig,
-        files
+        self, markdown: str, page: Page, config: MkDocsConfig, files
     ) -> str:
         """Process Excel macros in markdown content."""
         if not self.renderer:
@@ -71,17 +67,17 @@ class ExcelPlugin(BasePlugin):
             # render_excel_sheet patterns
             (
                 r'\{\{\s*render_excel_sheet\(\s*[\'"]([^\'"]+)[\'"]\s*,\s*[\'"]([^\'"]+)[\'"](?:\s*,\s*max_rows=(\d+))?(?:\s*,\s*max_cols=(\d+))?\s*\)\s*\}\}',
-                self._render_sheet_macro
+                self._render_sheet_macro,
             ),
             # render_excel_all_sheets patterns
             (
                 r'\{\{\s*render_excel_all_sheets\(\s*[\'"]([^\'"]+)[\'"](?:\s*,\s*include_sheets=\[([^\]]+)\])?(?:\s*,\s*exclude_sheets=\[([^\]]+)\])?\s*\)\s*\}\}',
-                self._render_all_sheets_macro
+                self._render_all_sheets_macro,
             ),
             # list_excel_sheets pattern
             (
                 r'\{\{\s*list_excel_sheets\(\s*[\'"]([^\'"]+)[\'"]\s*\)\s*\}\}',
-                self._list_sheets_macro
+                self._list_sheets_macro,
             ),
         ]
 
@@ -94,10 +90,16 @@ class ExcelPlugin(BasePlugin):
         """Handle render_excel_sheet macro."""
         file_path = match.group(1)
         sheet_name = match.group(2)
-        max_rows = int(match.group(3)) if match.group(3) else self.config["default_max_rows"]
-        max_cols = int(match.group(4)) if match.group(4) else self.config["default_max_cols"]
+        max_rows = (
+            int(match.group(3)) if match.group(3) else self.config["default_max_rows"]
+        )
+        max_cols = (
+            int(match.group(4)) if match.group(4) else self.config["default_max_cols"]
+        )
 
-        return self.renderer.render_excel_sheet(file_path, sheet_name, max_rows, max_cols)
+        return self.renderer.render_excel_sheet(
+            file_path, sheet_name, max_rows, max_cols
+        )
 
     def _render_all_sheets_macro(self, match) -> str:
         """Handle render_excel_all_sheets macro."""
@@ -108,17 +110,17 @@ class ExcelPlugin(BasePlugin):
         exclude_sheets = None
 
         if match.group(2):  # include_sheets
-            include_sheets = [s.strip().strip('\'"') for s in match.group(2).split(',')]
+            include_sheets = [s.strip().strip("'\"") for s in match.group(2).split(",")]
 
         if match.group(3):  # exclude_sheets
-            exclude_sheets = [s.strip().strip('\'"') for s in match.group(3).split(',')]
+            exclude_sheets = [s.strip().strip("'\"") for s in match.group(3).split(",")]
 
         return self.renderer.render_excel_all_sheets(
             file_path,
             max_rows=self.config["default_max_rows"],
             max_cols=self.config["default_max_cols"],
             include_sheets=include_sheets,
-            exclude_sheets=exclude_sheets
+            exclude_sheets=exclude_sheets,
         )
 
     def _list_sheets_macro(self, match) -> str:
@@ -142,16 +144,20 @@ class ExcelPlugin(BasePlugin):
         """Get the CSS content for Excel tables."""
         return """
 /* Excel Plugin Styles */
+.excel-table-wrapper {
+    overflow-x: auto;
+    margin: 1rem 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
 .excel-table {
     border-collapse: collapse;
-    margin: 1rem 0;
     font-size: 0.9rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     width: 100%;
-    max-width: 100%;
-    overflow-x: auto;
-    display: block;
-    white-space: nowrap;
+    min-width: 100%;
+    margin: 0;
 }
 
 .excel-table td, .excel-table th {

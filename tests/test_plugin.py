@@ -2,12 +2,13 @@
 
 import os
 import tempfile
-import pytest
 from unittest.mock import Mock, patch
 
-from mkdocs_excel.renderer import ExcelRenderer
-from mkdocs_excel.color_utils import get_rgb_from_color, apply_tint
+import pytest
+
 from mkdocs_excel.cache import ExcelCache
+from mkdocs_excel.color_utils import apply_tint, get_rgb_from_color
+from mkdocs_excel.renderer import ExcelRenderer
 
 
 class TestExcelRenderer:
@@ -19,7 +20,7 @@ class TestExcelRenderer:
             cache_enabled=False,  # Disable cache for testing
             max_file_size_mb=5,
             default_max_rows=100,
-            default_max_cols=20
+            default_max_cols=20,
         )
 
     def test_file_not_found(self):
@@ -46,9 +47,9 @@ class TestExcelRenderer:
 
     def test_file_size_warning(self):
         """Test file size warning generation."""
-        with tempfile.NamedTemporaryFile(suffix='.xlsx', delete=False) as tmp:
+        with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp:
             # Create a small file for testing
-            tmp.write(b'x' * 1024)  # 1KB
+            tmp.write(b"x" * 1024)  # 1KB
             tmp.flush()
 
             warning = self.renderer._get_file_size_warning(tmp.name)
@@ -138,8 +139,9 @@ class TestExcelCache:
 
             # Modify file (update mtime)
             import time
+
             time.sleep(0.1)  # Ensure mtime difference
-            with open(tmp.name, 'w') as f:
+            with open(tmp.name, "w") as f:
                 f.write("modified content")
 
             # Cache should be invalid now
